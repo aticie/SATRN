@@ -14,7 +14,7 @@ from flags import Flags
 from utils import get_network, load_charset, get_string, get_init_trained, adjust_string
 
 
-def inference(config_file, image_file):
+def inference(config_file, gt_txt):
     """ Run text recognition network on an image file.
     """
     # Get config
@@ -56,15 +56,24 @@ def inference(config_file, image_file):
     restore_model(sess, FLAGS.eval.model_path)
 
     # Run
-    img = cv2.imread(image_file, mode)
-    img = np.reshape(img, [img.shape[0], img.shape[1], num_channel])
-    predicted = sess.run(prediction, feed_dict={image: img})
-    string = get_string(predicted[0], out_charset)
-    string = adjust_string(string, FLAGS.eval.lowercase,
-                           FLAGS.eval.alphanumeric)
-    print(string)
+    with open(gt_txt) as f:
+        gt = [line.split('\t') for line in f.read().splitlines()]
 
-    return string
+    total = 0
+    correct = 0
+    for image_file, label in gt:
+        img = cv2.imread(image_file, mode)
+        img = np.reshape(img, [img.shape[0], img.shape[1], num_channel])
+        predicted = sess.run(prediction, feed_dict={image: img})
+        string = get_string(predicted[0], out_charset)
+        string = adjust_string(string, FLAGS.eval.lowercase,
+                               FLAGS.eval.alphanumeric)
+        if string == label:
+            correct += 1
+        total += 1
+
+    print(f'Exact match accuracy: {correct/total*100:.2f}% - {correct}/{total}')
+    return
 
 
 if __name__ == '__main__':
