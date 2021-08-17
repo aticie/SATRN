@@ -72,7 +72,8 @@ def inference(config_file, gt_txt):
             correct += 1
         total += 1
 
-    print(f'Exact match accuracy: {correct/total*100:.2f}% - {correct}/{total}')
+    accuracy = correct/total*100
+    print('Exact match accuracy: {:.2f}% - {}/{}'.format(accuracy, correct, total))
     return
 
 
