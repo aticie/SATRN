@@ -5,6 +5,7 @@ MIT license
 Usage:
 python inference.py --config_file=<config_file_path> --image_file=<image_file_path>
 """
+import os
 
 import cv2
 import fire
@@ -56,12 +57,14 @@ def inference(config_file, gt_txt):
     restore_model(sess, FLAGS.eval.model_path)
 
     # Run
+    gt_folder = os.path.dirname(gt_txt)
     with open(gt_txt) as f:
         gt = [line.split('\t') for line in f.read().splitlines()]
 
     total = 0
     correct = 0
-    for image_file, label in gt:
+    for image_rel_path, label in gt:
+        image_file = os.path.join(gt_folder, image_rel_path)
         img = cv2.imread(image_file, mode)
         img = np.reshape(img, [img.shape[0], img.shape[1], num_channel])
         predicted = sess.run(prediction, feed_dict={image: img})
