@@ -6,18 +6,18 @@ Usage:
 python eval.py --config_file=<config_file_path>
 """
 import os
-import fire
 import time
 
+import fire
 import tensorflow as tf
 from psutil import virtual_memory
 
+from dataset import VisperaTFRecordLoader
 from flags import Flags
-from dataset import DatasetLodaer
 from utils import \
-        count_available_gpus, load_charset, get_network, \
-        single_tower, validate, get_session_config, \
-        get_init_trained, get_scaffold
+    count_available_gpus, load_charset, get_network, \
+    single_tower, validate, get_session_config, \
+    get_init_trained, get_scaffold
 
 tf.logging.set_verbosity(tf.logging.ERROR)
 
@@ -35,7 +35,7 @@ def main(config_file=None):
     # System environments
     num_gpus = count_available_gpus()
     num_cpus = os.cpu_count()
-    mem_size = virtual_memory().available // (1024**3)
+    mem_size = virtual_memory().available // (1024 ** 3)
     out_charset = load_charset(FLAGS.charset)
     print('[+] System environments')
     print('The number of gpus : {}'.format(num_gpus))
@@ -56,28 +56,27 @@ def main(config_file=None):
     global_step = tf.train.get_or_create_global_step()
 
     for gpu_indx in range(num_gpus):
-
         # Get eval dataset
         input_device = '/gpu:%d' % gpu_indx
         print('[+] Build Eval tower GPU:%d' % gpu_indx)
 
-        eval_loader = DatasetLodaer(dataset_paths=FLAGS.eval.dataset_paths,
-                                    dataset_portions=None,
-                                    batch_size=FLAGS.eval.batch_size
-                                    label_maxlen=FLAGS.label_maxlen,
-                                    out_charset=out_charset,
-                                    preprocess_image=net.preprocess_image,
-                                    is_train=False,
-                                    is_ctc=is_ctc,
-                                    shuffle_and_repeat=False,
-                                    concat_batch=False,
-                                    input_device=input_device,
-                                    num_cpus=num_cpus,
-                                    num_gpus=num_gpus,
-                                    worker_index=gpu_indx,
-                                    use_rgb=FLAGS.use_rgb,
-                                    seed=FLAGS.seed,
-                                    name='eval')
+        eval_loader = VisperaTFRecordLoader(dataset_paths=FLAGS.eval.dataset_paths,
+                                            dataset_portions=None,
+                                            batch_size=FLAGS.eval.batch_size,
+                                            label_maxlen=FLAGS.label_maxlen,
+                                            out_charset=out_charset,
+                                            preprocess_image=net.preprocess_image,
+                                            is_train=False,
+                                            is_ctc=is_ctc,
+                                            shuffle_and_repeat=False,
+                                            concat_batch=False,
+                                            input_device=input_device,
+                                            num_cpus=num_cpus,
+                                            num_gpus=num_gpus,
+                                            worker_index=gpu_indx,
+                                            use_rgb=FLAGS.use_rgb,
+                                            seed=FLAGS.seed,
+                                            name='eval')
 
         eval_tower_output = single_tower(net,
                                          gpu_indx,

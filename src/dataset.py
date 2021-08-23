@@ -2,13 +2,13 @@
 Copyright (c) 2020-present NAVER Corp.
 MIT license
 """
-import os
-import sys
-import glob
-import copy
 import collections
+import copy
+import glob
+import os
 
 import tensorflow as tf
+
 from constant import DELIMITER, UNK_INDEX, EOS_TOKEN
 from utils import text_length
 
@@ -27,7 +27,7 @@ def get_stoi_table(out_charset):
     return table
 
 
-class DatasetLodaer(object):
+class DatasetLoader(object):
     """
     """
 
@@ -61,11 +61,11 @@ class DatasetLodaer(object):
 
         if self.dataset_portions is not None:
             assert -1e-9 < abs(1. - sum(self.dataset_portions)) < 1e-9, \
-                    str(sum(self.dataset_portions))
+                str(sum(self.dataset_portions))
             assert len(self.dataset_paths) == len(self.dataset_portions)
         else:
             assert not concat_batch, \
-                    'Data portions must be specified for concat_batch'
+                'Data portions must be specified for concat_batch'
             self.dataset_portions = [1 for _ in range(len(self.dataset_paths))]
 
         _, ext = os.path.splitext(
@@ -213,8 +213,8 @@ class DatasetLodaer(object):
             # Extract
             if self.concat_batch:
                 _batch_size = max(int(self.batch_size * ds_portion), 1) \
-                        if i < len(self.dataset_names)-1 \
-                        else max(self.batch_size - sum(batch_sizes), 1)
+                    if i < len(self.dataset_names) - 1 \
+                    else max(self.batch_size - sum(batch_sizes), 1)
                 batch_sizes.append(_batch_size)
 
             else:
@@ -234,7 +234,7 @@ class DatasetLodaer(object):
             if self.shuffle_and_repeat:
                 _dataset = _dataset.apply(
                     tf.contrib.data.shuffle_and_repeat(buffer_size=_batch_size *
-                                                       self.buffer_size,
+                                                                   self.buffer_size,
                                                        seed=self.seed))
 
             # Trasform
@@ -389,3 +389,35 @@ class DatasetLodaer(object):
         """
         """
         return image
+
+
+class VisperaTFRecordLoader(DatasetLoader):
+
+    def __init__(self, dataset_paths, dataset_portions, batch_size, label_maxlen, out_charset, preprocess_image,
+                 is_train, is_ctc, shuffle_and_repeat, concat_batch, input_device, num_cpus, **kwargs):
+        super().__init__(dataset_paths, dataset_portions, batch_size, label_maxlen, out_charset, preprocess_image,
+                         is_train, is_ctc, shuffle_and_repeat, concat_batch, input_device, num_cpus, **kwargs)
+
+    def tfrecord_parse_fn(self, example, dataset_name):
+        feature_map = {
+            'image_raw':
+                tf.FixedLenFeature([], dtype=tf.string, default_value=''),
+            'id':
+                tf.FixedLenFeature([], dtype=tf.string, default_value=''),
+            'label':
+                tf.FixedLenFeature([], dtype=tf.string, default_value=''),
+        }
+        features = tf.parse_single_example(example, feature_map)
+
+        image = tf.image.decode_image(features['image_raw'],
+                                      channels=self.img_channels)
+        image.set_shape([None, None, self.img_channels])
+        # length = features['text/length']
+        text = features['label'].decode('utf-8')
+        length = len(text)
+
+        filename = features['id'].decode('utf-8')
+        label = self.indexing_fn(text, length, DELIMITER)
+        label = tf.serialize_sparse(label)
+
+        return image, label, length, text, filename, dataset_name
