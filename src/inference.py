@@ -63,6 +63,7 @@ def inference(config_file, gt_txt):
 
     total = 0
     correct = 0
+    print('Started inference on {} images.'.format(len(gt)))
     for image_rel_path, label in gt:
         image_file = os.path.join(gt_folder, image_rel_path)
         img = cv2.imread(image_file, mode)
@@ -74,6 +75,8 @@ def inference(config_file, gt_txt):
         if string == label:
             correct += 1
         total += 1
+
+        print('Accuracy: {:.2f}.'.format(correct/total*100))
 
     accuracy = correct/total*100
     print('Exact match accuracy: {:.2f}% - {}/{}'.format(accuracy, correct, total))
