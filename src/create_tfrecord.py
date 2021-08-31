@@ -25,17 +25,26 @@ from concurrent.futures import ProcessPoolExecutor
 from constant import DELIMITER, EOS_TOKEN
 
 
-def gen_data(gt_exp,
+def gen_data(project_folder,
              output_dir,
              dataset_name,
+             subset,
              images_per_shard=10000,
              num_processes=1,
              lowercase=False,
              alphanumeric=False):
     """
     """
+
+    img_filenames = []
+    texts = []
     # Parse gt.txt
-    img_filenames, texts = parse_gt(gt_exp, lowercase, alphanumeric)
+    with os.scandir(project_folder) as it:
+        for folder in folder_it:
+            gt_path = os.path.join(folder.path, subset, 'gt.txt')
+            cur_img_filenames, cur_texts = parse_gt(gt_path, lowercase, alphanumeric)
+            img_filenames.extend(cur_img_filenames)
+            texts.extend(cur_texts)
 
     # Prepare stuff
     num_shards = (len(img_filenames) - 1) // images_per_shard + 1
