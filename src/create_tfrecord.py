@@ -172,7 +172,7 @@ def parse_gt(gt_exp, lowercase, alphanumeric, with_spe=False):
     for gt_path in gt_paths:
         gt_dir = os.path.dirname(gt_path)
 
-        f = open(gt_path)
+        f = open(gt_path, encoding='utf-8')
 
         for line in f:
             line = line.strip()
