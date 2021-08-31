@@ -20,6 +20,7 @@ import math
 import fire
 import time
 import tensorflow as tf
+from typing import List
 from PIL import Image
 from concurrent.futures import ProcessPoolExecutor
 from constant import DELIMITER, EOS_TOKEN
