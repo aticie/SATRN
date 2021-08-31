@@ -29,6 +29,7 @@ def gen_data(project_folder,
              output_dir,
              dataset_name,
              subset,
+             exclude_folders: List,
              images_per_shard=10000,
              num_processes=1,
              lowercase=False,
@@ -41,6 +42,8 @@ def gen_data(project_folder,
     # Parse gt.txt
     with os.scandir(project_folder) as it:
         for folder in folder_it:
+            if folder.name in exclude_folders:
+                continue
             gt_path = os.path.join(folder.path, subset, 'gt.txt')
             cur_img_filenames, cur_texts = parse_gt(gt_path, lowercase, alphanumeric)
             img_filenames.extend(cur_img_filenames)
