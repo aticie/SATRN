@@ -41,14 +41,15 @@ def gen_data(project_folder,
     img_filenames = []
     texts = []
     # Parse gt.txt
-    with os.scandir(project_folder) as it:
-        for folder in folder_it:
-            if folder.name in exclude_folders:
-                continue
-            gt_path = os.path.join(folder.path, subset, 'gt.txt')
-            cur_img_filenames, cur_texts = parse_gt(gt_path, lowercase, alphanumeric)
-            img_filenames.extend(cur_img_filenames)
-            texts.extend(cur_texts)
+    for folder in os.listdir(project_folder):
+        if folder in exclude_folders:
+            continue
+
+        folder_path = os.path.join(project_folder, folder)
+        gt_path = os.path.join(folder_path, subset, 'gt.txt')
+        cur_img_filenames, cur_texts = parse_gt(gt_path, lowercase, alphanumeric)
+        img_filenames.extend(cur_img_filenames)
+        texts.extend(cur_texts)
 
     # Prepare stuff
     num_shards = (len(img_filenames) - 1) // images_per_shard + 1
