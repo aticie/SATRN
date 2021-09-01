@@ -18,7 +18,7 @@ import tensorflow as tf
 from psutil import virtual_memory
 
 from constant import DELIMITER
-from dataset import VisperaTFRecordLoader
+from dataset import DatasetLoader
 from flags import Flags
 from utils import \
     load_charset, get_optimizer, \
@@ -171,7 +171,7 @@ def main(config_file):
             if gpu_indx < num_gpus - 1 \
             else batch_size - tower_batch_size * (num_gpus - 1)
 
-        train_loader = VisperaTFRecordLoader(
+        train_loader = DatasetLoader(
             dataset_paths=FLAGS.train.dataset_paths,
             dataset_portions=FLAGS.train.dataset_portions,
             batch_size=tower_batch_size,
@@ -210,7 +210,7 @@ def main(config_file):
 
         # Valid tower
         print('[+] Build Valid tower GPU:%d' % gpu_indx)
-        valid_loader = VisperaTFRecordLoader(dataset_paths=FLAGS.valid.dataset_paths,
+        valid_loader = DatasetLoader(dataset_paths=FLAGS.valid.dataset_paths,
                                              dataset_portions=None,
                                              batch_size=FLAGS.valid.batch_size //
                                                         num_gpus,

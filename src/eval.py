@@ -12,7 +12,7 @@ import fire
 import tensorflow as tf
 from psutil import virtual_memory
 
-from dataset import VisperaTFRecordLoader
+from dataset import DatasetLoader
 from flags import Flags
 from utils import \
     count_available_gpus, load_charset, get_network, \
@@ -60,23 +60,23 @@ def main(config_file=None):
         input_device = '/gpu:%d' % gpu_indx
         print('[+] Build Eval tower GPU:%d' % gpu_indx)
 
-        eval_loader = VisperaTFRecordLoader(dataset_paths=FLAGS.eval.dataset_paths,
-                                            dataset_portions=None,
-                                            batch_size=FLAGS.eval.batch_size,
-                                            label_maxlen=FLAGS.label_maxlen,
-                                            out_charset=out_charset,
-                                            preprocess_image=net.preprocess_image,
-                                            is_train=False,
-                                            is_ctc=is_ctc,
-                                            shuffle_and_repeat=False,
-                                            concat_batch=False,
-                                            input_device=input_device,
-                                            num_cpus=num_cpus,
-                                            num_gpus=num_gpus,
-                                            worker_index=gpu_indx,
-                                            use_rgb=FLAGS.use_rgb,
-                                            seed=FLAGS.seed,
-                                            name='eval')
+        eval_loader = DatasetLoader(dataset_paths=FLAGS.eval.dataset_paths,
+                                    dataset_portions=None,
+                                    batch_size=FLAGS.eval.batch_size,
+                                    label_maxlen=FLAGS.label_maxlen,
+                                    out_charset=out_charset,
+                                    preprocess_image=net.preprocess_image,
+                                    is_train=False,
+                                    is_ctc=is_ctc,
+                                    shuffle_and_repeat=False,
+                                    concat_batch=False,
+                                    input_device=input_device,
+                                    num_cpus=num_cpus,
+                                    num_gpus=num_gpus,
+                                    worker_index=gpu_indx,
+                                    use_rgb=FLAGS.use_rgb,
+                                    seed=FLAGS.seed,
+                                    name='eval')
 
         eval_tower_output = single_tower(net,
                                          gpu_indx,
